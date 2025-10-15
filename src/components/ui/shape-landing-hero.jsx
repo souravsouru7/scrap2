@@ -82,6 +82,7 @@ function HeroGeometric({
     };
 
     const [isModelVisible, setIsModelVisible] = useState(false)
+    const [modelSrc, setModelSrc] = useState(null)
     const [isSmallScreen, setIsSmallScreen] = useState(false)
     const modelContainerRef = useRef(null)
 
@@ -109,6 +110,23 @@ function HeroGeometric({
         mq.addEventListener('change', apply)
         return () => mq.removeEventListener('change', apply)
     }, [])
+
+    // Ensure the model shows immediately on small screens without waiting for intersection
+    useEffect(() => {
+        if (isSmallScreen) {
+            setIsModelVisible(true)
+        }
+    }, [isSmallScreen])
+
+    // Defer setting the heavy GLB src until visible, to improve first paint
+    useEffect(() => {
+        if (isModelVisible && !modelSrc) {
+            const timer = setTimeout(() => {
+                setModelSrc('/city_pack_3.glb')
+            }, 250)
+            return () => clearTimeout(timer)
+        }
+    }, [isModelVisible, modelSrc])
 
     return (
         <div
@@ -187,20 +205,55 @@ function HeroGeometric({
                         </h1>
                     </motion.div>
 
-                    <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible">
+                    {/* Mobile-only 3D model directly under headline */}
+                    <div className="block md:hidden w-full mt-4">
+                        <div className="relative w-full h-[55vh] overflow-hidden" ref={modelContainerRef}>
+                            {isModelVisible ? (
+                                <model-viewer
+                                    src={modelSrc || undefined}
+                                    camera-controls
+                                    autoplay={!isSmallScreen}
+                                    auto-rotate={!isSmallScreen}
+                                    shadow-intensity="1"
+                                    exposure="1.1"
+                                    camera-orbit={isSmallScreen ? "0deg 70deg 95%" : "0deg 65deg 70%"}
+                                    min-camera-orbit={isSmallScreen ? "auto auto 65%" : "auto auto 55%"}
+                                    max-camera-orbit={isSmallScreen ? "auto auto 150%" : "auto auto 160%"}
+                                    field-of-view={isSmallScreen ? "16deg" : "8deg"}
+                                    ar
+                                    loading="lazy"
+                                    interaction-prompt="none"
+                                    className="absolute inset-0 h-full w-full"
+                                    style={{ ['--poster-color']: 'transparent', background: 'transparent' }}
+                                ></model-viewer>
+                            ) : (
+                                <div className="absolute inset-0 h-full w-full bg-black/20 animate-pulse rounded-none" />
+                            )}
+                        </div>
+                        <p className="sr-only">3D model viewer rendering local file city_pack_3.glb</p>
+                    </div>
+
+                    <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible" className="hidden md:block">
                         <p
                             className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                            {description}
+                        </p>
+                    </motion.div>
+                    {/* Mobile-only description right after mobile model */}
+                    <motion.div custom={3} variants={fadeUpVariants} initial="hidden" animate="visible" className="block md:hidden">
+                        <p
+                            className="text-base sm:text-lg text-white/60 mt-6 mb-2 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             {description}
                         </p>
                     </motion.div>
                 </div>
             </div>
             {/* Local GLB model viewer (full, no box) */}
-            <div className="relative z-10 w-full px-4 md:px-6 mt-8 md:mt-12" ref={modelContainerRef}>
+            <div className="hidden md:block relative z-10 w-full px-4 md:px-6 mt-8 md:mt-12" ref={modelContainerRef}>
                 <div className="relative w-full h-[75vh] sm:h-[90vh] md:h-[100vh] overflow-hidden">
                     {isModelVisible ? (
                         <model-viewer
-                            src="/city_pack_3.glb"
+                            src={modelSrc || undefined}
                             camera-controls
                             autoplay
                             auto-rotate
