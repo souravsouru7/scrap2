@@ -1,5 +1,7 @@
 "use client";;
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +80,35 @@ function HeroGeometric({
             },
         }),
     };
+
+    const [isModelVisible, setIsModelVisible] = useState(false)
+    const [isSmallScreen, setIsSmallScreen] = useState(false)
+    const modelContainerRef = useRef(null)
+
+    useEffect(() => {
+        const element = modelContainerRef.current
+        if (!element) return
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsModelVisible(true)
+                    observer.disconnect()
+                }
+            },
+            { root: null, rootMargin: "0px", threshold: 0.2 }
+        )
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [])
+
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 640px)')
+        const apply = () => setIsSmallScreen(mq.matches)
+        apply()
+        mq.addEventListener('change', apply)
+        return () => mq.removeEventListener('change', apply)
+    }, [])
 
     return (
         <div
@@ -163,6 +194,33 @@ function HeroGeometric({
                         </p>
                     </motion.div>
                 </div>
+            </div>
+            {/* Local GLB model viewer (full, no box) */}
+            <div className="relative z-10 w-full px-4 md:px-6 mt-8 md:mt-12" ref={modelContainerRef}>
+                <div className="relative w-full h-[75vh] sm:h-[90vh] md:h-[100vh] overflow-hidden">
+                    {isModelVisible ? (
+                        <model-viewer
+                            src="/city_pack_3.glb"
+                            camera-controls
+                            autoplay
+                            auto-rotate
+                            shadow-intensity="1"
+                            exposure="1.1"
+                            camera-orbit={isSmallScreen ? "0deg 70deg 95%" : "0deg 65deg 70%"}
+                            min-camera-orbit={isSmallScreen ? "auto auto 65%" : "auto auto 55%"}
+                            max-camera-orbit={isSmallScreen ? "auto auto 150%" : "auto auto 160%"}
+                            field-of-view={isSmallScreen ? "16deg" : "8deg"}
+                            ar
+                            loading="lazy"
+                            interaction-prompt="none"
+                            className="absolute inset-0 h-full w-full"
+                            style={{ ['--poster-color']: 'transparent', background: 'transparent' }}
+                        ></model-viewer>
+                    ) : (
+                        <div className="absolute inset-0 h-full w-full bg-black/20 animate-pulse rounded-none" />
+                    )}
+                </div>
+                <p className="sr-only">3D model viewer rendering local file city_pack_3.glb</p>
             </div>
             <div
                 className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
