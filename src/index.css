@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -47,6 +47,10 @@ body {
 }
 
 :root {
+  /* Font stacks requested */
+  --font-heading: 'Futura', 'DIN', 'Baskerville', 'Didot', 'Proxima Nova', 'Cormorant Garamond', serif;
+  --font-subheading: 'Frutiger', 'Georgia', 'Century Schoolbook', 'Bodoni', 'Teko', 'Montserrat', sans-serif;
+  --font-body: 'Book Antiqua', 'Helvetica', 'Roboto', 'Verdana', 'Inter', system-ui, -apple-system, sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
